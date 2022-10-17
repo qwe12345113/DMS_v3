@@ -1,8 +1,10 @@
-# DMS_v2
+# DMS_v3
 ## Introdution
-We add the **registor** and **face recognition** function into [DMS_v1](https://github.com/qwe12345113/DMS_v1).
+This project edit from [DMS_v2](https://github.com/qwe12345113/DMS_v2). We combine the **registor** and **face recognition** function into dms function. 
 
-In **registor** function, we need to collect 15 photos to build the user database. In **face recognition** function, take a photo then function will recognize the user.
+Type the keyword "reg" and "rec" to do the **registor** and **face recognition** function. 
+
+In **registor** function, we need to collect 5 photos to build the user database. In **face recognition** function, take a photo then function will recognize the user.
 
 We use the face landmarks to detect the 4 of driving behaviors, including **yawn**, **distraction**, **lower head**, and **closing eyes**.
 
@@ -21,19 +23,16 @@ Might work under others, but didn't get to test any other OSs just yet.
 ## Preparing
 1. Download [Dlib](http://dlib.net/) and the following model：
     - [face_recognition_resnet_model](https://github.com/davisking/dlib-models/blob/master/dlib_face_recognition_resnet_model_v1.dat.bz2)
-    - [68-Dlib's point model](https://github.com/davisking/dlib-models/blob/master/shape_predictor_68_face_landmarks.dat.bz2)
-    - [5-Dlib's point model](https://github.com/davisking/dlib-models/blob/master/shape_predictor_5_face_landmarks.dat.bz2)
-    
+    - [68-Dlib's point model](https://github.com/davisking/dlib-models/blob/master/shape_predictor_68_face_landmarks.dat.bz2)    
 
-2. Extract the dlib and model, place them into DMS_v2. 
+2. Extract the dlib and model, place them into DMS_v3. 
 3. Structure of this project should be：
 ```
-DMS_v2
+DMS_v3
   ├─ src
   ├─ dlib-19.24
   └─ Model
       ├─ shape_predictor_68_face_landmarks.dat
-      ├─ shape_predictor_5_face_landmarks.dat
       └─ dlib_face_recognition_resnet_model_v1.dat
 ```
 
@@ -42,31 +41,13 @@ DMS_v2
 
 ## Getting Started:
 ### Usage
-* detect from image.
-```bash
-$ ./dms pic /path/to/image
-```
-* detect from video.
-```bash
-$ ./dms video /path/to/video
-```
+
 * detect from webcam.
 ```bash
 $ ./dms
 ```
-* registor.(press Enter to take photos)
-```bash
-$ ./dms user_name
-```
-* face recognition.(press Enter to take a photo)
-```bash
-$ ./dms rec
-```
-## Demo
 
-
-https://user-images.githubusercontent.com/11375811/195013024-d6e1a8ff-211d-40e0-93b6-3ed299b036d2.mp4
-
+When start the application, type "reg username" and "rec" in terminal to run registor and recognition fuction.
 
 
 # Reference
