@@ -49,8 +49,10 @@ DMS_v3
 $ ./dms
 ```
 
-When start the application, type "reg username" and "rec" in terminal to run registor and recognition function.
-
+* There three command can type in terminal when the application start.
+    - "reg user_name" ： do registor function.
+    - "rec" ： do face recognition function.
+    - "exit" ： end the application.
 
 # Reference
 [1] Tutorial 1：<https://www.learnopencv.com/facemark-facial-landmark-detection-using-opencv/>
