@@ -209,7 +209,9 @@ private:
 
     void saveImage(matrix<rgb_pixel> img, string filename, anet_type net)
     {
-        matrix<float, 0, 1> face = net(img);
+        
+        matrix<float, 0, 1> face = net(img);        
+        
         std::ofstream ofs(filename, std::ofstream::trunc);
         if (ofs.is_open())
         {

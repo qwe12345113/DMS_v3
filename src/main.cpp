@@ -4,26 +4,26 @@
 #include <dlib/image_processing/frontal_face_detector.h>
 #include <dlib/image_processing/render_face_detections.h>
 #include <dlib/image_processing.h>
-#include <dlib/opencv/cv_image.h>
-#include <dlib/opencv.h>
+// #include <dlib/opencv/cv_image.h>
+// #include <dlib/opencv.h>
 #include <dlib/image_io.h>
 #include <thread>
 #include <unistd.h>
 #include <iostream>
+#include <chrono>
 #include <opencv2/opencv.hpp>
-#include "lib/utils_math.hpp"
 #include "lib/Eye_Dector_Module.hpp"
 #include "lib/Yawn_Dector_Module.hpp"
 #include "lib/Pose_Estimation_Module.hpp"
 #include "lib/Register.hpp"
 #include "lib/Attention_Scorer_Module.hpp"
+#include "lib/Config_Module.hpp"
 
 using namespace std;
-using namespace cv;
 using namespace dlib;
 
 /*---------------------------------------------------------------------------------------- */
-
+// defind model structure 
 template <template <int, template <typename> class, int, typename> class block, int N, template <typename> class BN, typename SUBNET>
 using residual = add_prev1<block<N, BN, 1, tag1<SUBNET>>>;
 
@@ -56,30 +56,12 @@ using anet_type = loss_metric<fc_no_bias<128, avg_pool_everything<
                                                               alevel3<
                                                                   alevel4<
                                                                       max_pool<3, 3, 2, 2, relu<affine<con<32, 7, 7, 2, 2, input_rgb_image_sized<150>>>>>>>>>>>>>;
-
 /*---------------------------------------------------------------------------------------- */
-
-#define INPUT_COL 640
-#define INPUT_ROW 360
-
-#define ROI_Xl 0
-#define ROI_Xm (INPUT_COL / 4)
-#define ROI_Xr (INPUT_COL / 2)
-#define ROI_Y 0
-
-#define ROI_COL (INPUT_COL / 2)
-#define ROI_ROW (INPUT_ROW)
-
-#define LAG 30
-
-/*---------------------------------------------------------------------------------------- */
-
 string reg_command = "";
 string rec_file = "";
 string user_name = "";
 unsigned long waitTemp = 1;
 unsigned long WAIT_CAPTURE = 100;
-
 /*---------------------------------------------------------------------------------------- */
 
 void getCin()
@@ -96,12 +78,15 @@ void getCin()
     }
     else if (reg_command == "exit")
       break;
-    sleep(waitTemp);
+    // sleep(waitTemp);
   }
 }
 
 void runFunc()
 {
+  Config cfg;
+  cfg.init("../config.cfg");
+
   frontal_face_detector detector = get_frontal_face_detector();
   shape_predictor sp;
   deserialize("../Model/shape_predictor_68_face_landmarks.dat") >> sp;
@@ -109,59 +94,56 @@ void runFunc()
   anet_type net;
   deserialize("../Model/dlib_face_recognition_resnet_model_v1.dat") >> net;
 
-  cv::VideoCapture cam;
-  cam.open(0);
+  cv::VideoCapture cam(0);
+  cam.set(cv::CAP_PROP_FPS, 30);
+  cam.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+  cam.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+  cam.set(cv::CAP_PROP_CONVERT_RGB, 1);
 
   cv::Mat input;
-  cv::Scalar color(0, 0, 255);
 
-  int lag = 0, fps_lim = 12;
-  // float time_lim = 1. / fps_lim ;
-  bool find_normal_satus_OK = false, record = true, show_detail = false, check = true, lock_cin = false;
+  int lag = 0, frame_count=0, showName=0;  
+  bool find_normal_satus_OK = false, show_detail = false, check = true, lock_cin = false;
 
   std::vector<full_object_detection> shapes, tmp_shapes;
   std::vector<float> threshold;
 
   cv::VideoWriter writer;
-  if (record)
-    writer.open("./demo.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 15.0, cv::Size(INPUT_COL, INPUT_ROW), true);
+  if (cfg.record)
+    writer.open("./demo.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 15.0, cfg.mySize, true);
 
   EyeDetector Eye_det;
   HeadPoseEstimator Head_pose;
   YawnDetector yawn_det;
   AttentionScorer Scorer;
   Register usr_reg;
-
-  string out = "", out_usr="Hi User";
-  float ear = 0, m_ear = 0, gaze = 0, avg_pitch = 0;
   usr_reg.net = net;
+
+  string out = "", out_usr="";
+  
+  auto start = std::chrono::high_resolution_clock::now();
 
   while (cam.read(input))
   {
-    // clock_t start(clock());
-    cv::resize(input, input, cv::Size(INPUT_COL, INPUT_ROW));
+    cv::resize(input, input, cfg.mySize);
+    cv::Mat frame = input(cfg.myROI);
 
-    cv::Rect myROI(ROI_Xm, ROI_Y, ROI_COL, ROI_ROW);
-    cv::Mat frame = input(myROI);
-    cv::Mat gray;
-    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-
-    // if the img is gray scale concat image
-    // three time to simulate the color image
+    // if the img is gray scale concat image to simulate the color image
     if (frame.channels() == 1)
-      cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
-
+      cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);    
+    
     //------------ opencv format to dlib format ---------------//
     array2d<rgb_pixel> img;
     assign_image(img, cv_image<bgr_pixel>(frame));
 
-    //----- Number of faces detected -----//
-    std::vector<dlib::rectangle> dets = detector(img);
     dlib::rectangle face;
     std::vector<int> x_pos;
-
+    //----- Number of faces detected -----// // spend 50...ms
+    std::vector<dlib::rectangle> dets = detector(img);
+    
     if (dets.size() > 0)
     {
+      /*if more than 1 face, find the face which is nearest the INPUT_COL/2*/
       if ((dets.size() == 1))
         face = dets[0];
       else
@@ -174,11 +156,11 @@ void runFunc()
         face = dets[index];
       }
 
-      if (strcmp(reg_command.substr(0, 3).c_str(), "reg") == 0)
+      if(strcmp(reg_command.substr(0, 3).c_str(), "reg") == 0)
       {
-
+        auto start_reg = std::chrono::high_resolution_clock::now();
         if (check)
-        {
+        {          
           user_name = reg_command.substr(reg_command.find(" ") + 1);
 
           cout << "start to register" << endl;
@@ -200,7 +182,7 @@ void runFunc()
         {
           lock_cin = true;
           usr_reg.registor(face, frame);
-          sleep(WAIT_CAPTURE);
+          // sleep(WAIT_CAPTURE);
           if (usr_reg.n == usr_reg.photo_amount_need)
           {
             reg_command = "";
@@ -212,22 +194,28 @@ void runFunc()
           }
         }
         cout << endl;
+        auto finish_reg = std::chrono::high_resolution_clock::now();
+        cout << "during " << (std::chrono::duration_cast<std::chrono::milliseconds>(finish_reg-start_reg).count()) << " ms" << endl;
+        cout << "during " << (std::chrono::duration_cast<std::chrono::seconds>(finish_reg-start_reg).count()) << " s" << endl;
       }
 
       else if (strcmp(reg_command.c_str(), "rec") == 0)
       {
+        auto start_rec = std::chrono::high_resolution_clock::now();
         usr_reg.recognized = false;
         usr_reg.TakePhoto(face, frame);
         usr_reg.recognize_usr();
 
         if(usr_reg.recognized){
           out_usr="Hi " + usr_reg.usr;
+          showName = 0;
         }
-        else{
-          out_usr="Hi User";
-        }
+        
         reg_command = "";
         cout << endl;
+        auto finish_rec = std::chrono::high_resolution_clock::now();
+        cout << "during " << (std::chrono::duration_cast<std::chrono::milliseconds>(finish_rec-start_rec).count()) << " ms" << endl;
+        cout << "during " << (std::chrono::duration_cast<std::chrono::seconds>(finish_rec-start_rec).count()) << " s" << endl;
       }
 
       else
@@ -240,86 +228,74 @@ void runFunc()
         {
           if (find_normal_satus_OK)
           {
-            ear = Eye_det.get_EAR(frame, landmarks);
-            Scorer.get_PERCLOS(ear); // get the tired and perclos_score
-
-            m_ear = yawn_det.get_EAR(frame, landmarks); // get mouth EAR
-
-            Head_pose.get_pose(frame, landmarks); // frame, roll, pitch, yaw
-
+            Eye_det.get_EAR(frame, landmarks);
+            yawn_det.get_EAR(frame, landmarks);
+            Head_pose.get_pose(frame, landmarks);
             if (show_detail)
             {
-              out = "EAR: " + to_string(ear);
+              out = "EAR: " + to_string(Eye_det.ear);
               cv::putText(frame, out, Point(10, 50), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 1);
 
-              out = "Gaze Score: " + to_string(gaze);
-              cv::putText(frame, out, Point(10, 80), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 1);
-
-              out = "PERCLOS: " + to_string(Scorer.perclos_score);
-              cv::putText(frame, out, Point(10, 110), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 1);
-
-              out = "MEAR: " + to_string(m_ear);
+              out = "MEAR: " + to_string(yawn_det.m_ear);
               cv::putText(frame, out, Point(10, 130), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 1);
             }
 
-            Scorer.eval_scores(ear, m_ear, Head_pose.pitch, Head_pose.yaw, shapes.at(0).part(30).y());
+            Scorer.eval_scores(Eye_det.ear, yawn_det.m_ear, Head_pose.pitch, Head_pose.yaw, shapes.at(0).part(30).y());
 
             if (Scorer.is_asleep)
-              cv::putText(frame, "CLOSE EYES !", Point(10, 280), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
+              cv::putText(frame, "CLOSE EYES !", Point(10, cfg.INPUT_ROW-80), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
             if (Scorer.is_yawn)
-              cv::putText(frame, "YAWN !", Point(10, 300), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
-            // if(Scorer.is_looking_away)
-            //   cv::putText(frame, "LOOKING AWAY!", Point(400, 300), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,255), 1);
+              cv::putText(frame, "YAWN !", Point(10, cfg.INPUT_ROW-60), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
             if (Scorer.is_lower_head)
-              cv::putText(frame, "LOWER HEAD !", Point(10, 320), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
+              cv::putText(frame, "LOWER HEAD !", Point(10, cfg.INPUT_ROW-40), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
             if (Scorer.is_distracted)
-              cv::putText(frame, "DISTRACTED !", Point(10, 340), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
+              cv::putText(frame, "DISTRACTED !", Point(10, cfg.INPUT_ROW-20), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 1);
           }
-          else
+          else // calculate normal face state threshold
           {
-            cout << "normal status calculating" << endl;
-            if (lag > LAG)
+            if (lag > cfg.LAG)
             {
-              threshold = threshold_calculate(tmp_shapes);
-              avg_pitch = avg_pitch / lag;
-              cout << "calculate finish" << endl;
-              cout << "input command :" << endl;
-              find_normal_satus_OK = true;
+              cfg.cal_normal_state(tmp_shapes);
+              cfg.cal_head_tresh(Head_pose.pitch, Head_pose.yaw, true);
+              cout << "calculate finish\n" << "input command : ";
+                            
+              Scorer.init(cfg.fps_lim, cfg.mear_tresh, cfg.ear_tresh, cfg.avg_yaw, cfg.head_basic, cfg.head_moveY, cfg.avg_pitch,
+                          cfg.pitch_tresh, cfg.mear_time_tresh, cfg.ear_time_tresh, cfg.yaw_time_tresh, cfg.pitch_time_tresh);
+            
+              Head_pose.init(); // init pitch, yaw
               tmp_shapes.clear();
-              Scorer.init(fps_lim, threshold.at(0), 3, 0.2, 3, 27, 0.1, 2, threshold.at(1), 2, 1, threshold.at(3), avg_pitch);
-              Head_pose.pitch = 0; // init pitch
+              find_normal_satus_OK = true;
             }
             else
             {
               tmp_shapes.push_back(shapes.at(0));
               Head_pose.get_pose(frame, landmarks);
-              avg_pitch = avg_pitch + abs(Head_pose.pitch);
+              cfg.cal_head_tresh(Head_pose.pitch, Head_pose.yaw, false);
               lag++;
             }
           }
-        }
-        // double duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+        }        
       }
     }
     else
-      cv::putText(frame, "No Face!", Point(10, 320), FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2);
+      cv::putText(frame, "No Face!", Point(10, cfg.INPUT_ROW-40), FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2);
 
-    if(usr_reg.recognized)
-      cv::putText(frame, out_usr, Point(10, 50), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
-
-
-    if (record)
+    if(usr_reg.recognized){      
+      if(showName < 150){
+        cv::putText(frame, out_usr, Point(10, 50), FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+      }
+      showName++;
+    }
+    if (cfg.record)
       writer.write(frame);
-
-    cv::imshow("123", frame);
+    
+    cv::imshow("dms", frame);
     char key = cv::waitKey(1);
     if (reg_command == "exit")
       key = 27;
 
     if (key == 27)
-    {
       break;
-    }
 
     if (!lock_cin)
     {
@@ -327,9 +303,15 @@ void runFunc()
       check = true;
     }
     shapes.clear();
+    frame_count++;
   }
   cam.release();
   cv::destroyAllWindows();
+
+  auto finish = std::chrono::high_resolution_clock::now();
+  cout << "during " << (std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count()) << " ms" << endl;
+  cout << "during " << (std::chrono::duration_cast<std::chrono::seconds>(finish-start).count()) << " s" << endl;
+  cout << frame_count<< endl;
 }
 
 int main(int argc, char *argv[])
@@ -337,7 +319,6 @@ try
 {
   if (argc == 1)
   {
-    // user_name = argv[1];
     thread mThread1(runFunc);
     thread mThread2(getCin);
     mThread1.join();

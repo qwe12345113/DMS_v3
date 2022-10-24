@@ -12,9 +12,14 @@ public:
     full_object_detection keypoints;
     Mat frame;
     bool verbose = false;
-    float roll;
-    float pitch;
-    float yaw;
+    float roll = 0, pitch = 0, yaw = 0;
+
+    void init()
+    {
+        roll = 0;
+        pitch = 0;
+        yaw = 0;
+    }
 
     void get_pose(cv::Mat frame, full_object_detection landmarks)
     {
@@ -99,7 +104,6 @@ private:
         // roll = roll * 180 / M_PI;
         pitch = pitch1 * 180 / M_PI; // turn around head
         // yaw = yaw * 180 / M_PI;
-        //cout << pitch << endl; // 正面的基準在角度在10多 // need to moderfy
     }
 
     void rotationMatrixToEulerAngles2(float R[3][3])
@@ -115,6 +119,7 @@ private:
         // float roll = asin(2.0 * (q0 * q2 + q1 * q3));
         // float pitch = atan2(2.0 * (q0 * q1 - q2 * q3), (q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3));
         yaw = atan2(2.0 * (q0 * q3 - q1 * q2), (q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3)); // lower head      
+        
     }
 
     // void rotationMatrixToEulerAngles3(cv::Mat rotation_vector)

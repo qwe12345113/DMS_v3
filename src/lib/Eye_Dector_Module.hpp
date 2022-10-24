@@ -21,11 +21,10 @@ public:
     Mat frame;
     bool show_processing=false;
     int eye_width;
-    float gaze_score;
+    float gaze_score, ear;
 
-    float get_EAR(Mat in_frame, full_object_detection landmarks)
+    void get_EAR(Mat in_frame, full_object_detection landmarks)
     {
-
         keypoints = landmarks;
         frame = in_frame;
         full_object_detection pts = keypoints;
@@ -43,13 +42,10 @@ public:
         float ear_left = EAR_eye(eye_pts_l);
         float ear_right = EAR_eye(eye_pts_r);
 
-        float ear_avg = (ear_left + ear_right) / 2;
-        return ear_avg;
+        ear = (ear_left + ear_right) / 2;
     }
 
-
     float get_Gaze_Score(Mat in_frame, full_object_detection landmarks)
-    // void get_Gaze_Score(Mat in_frame, full_object_detection landmarks)
     {
         
         keypoints = landmarks;

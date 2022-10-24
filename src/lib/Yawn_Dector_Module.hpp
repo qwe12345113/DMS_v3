@@ -7,8 +7,9 @@ class YawnDetector
 public:
     full_object_detection keypoints;
     Mat frame;
+    float m_ear;
 
-    float get_EAR(Mat in_frame, full_object_detection landmarks)
+    void get_EAR(Mat in_frame, full_object_detection landmarks)
     {
         keypoints = landmarks;
         frame = in_frame;
@@ -23,9 +24,7 @@ public:
             mouth_pts.push_back(point(keypoints.part(pts2[n]).x(), keypoints.part(pts2[n]).y()));
         }
 
-        float ear_mouth = EAR_mouth(mouth_pts);
-
-        return ear_mouth;
+        m_ear = EAR_mouth(mouth_pts);
     }
 
 private:
