@@ -2,9 +2,9 @@
 ## Introdution
 This project edit from [DMS_v2](https://github.com/qwe12345113/DMS_v2). We combine the **registor** and **face recognition** function into dms function. 
 
-Type the keyword "reg" and "rec" to do the **registor** and **face recognition** function. 
+Type the command "reg user_name" and "rec" to do the **registor** and **face recognition** function. 
 
-In **registor** function, we need to collect 5 photos to build the user database. In **face recognition** function, take a photo then function will recognize the user.
+In **registor** function, we need to collect 5 photos to build the user database. In **face recognition** function, the function will take a photo first, then recognize the user.
 
 We use the face landmarks to detect the 4 of driving behaviors, including **yawn**, **distraction**, **lower head**, and **closing eyes**.
 
