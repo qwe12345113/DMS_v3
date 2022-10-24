@@ -55,7 +55,7 @@ $ ./dms
 * There three command can type in terminal when the application start.
     - "reg user_name" ： do registor function.
     - "rec" ： do face recognition function.
-    - "exit" ： end the application.
+    - "exit" ： finish the application.
 
 # Reference
 [1] Tutorial 1：<https://www.learnopencv.com/facemark-facial-landmark-detection-using-opencv/>
