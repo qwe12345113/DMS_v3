@@ -31,6 +31,8 @@ Might work under others, but didn't get to test any other OSs just yet.
 DMS_v3
   ├─ src
   ├─ dlib-19.24
+  ├─ config.cfg
+  ├─ CMakeLists.txt
   └─ Model
       ├─ shape_predictor_68_face_landmarks.dat
       └─ dlib_face_recognition_resnet_model_v1.dat
