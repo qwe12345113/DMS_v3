@@ -1,5 +1,6 @@
 # DMS_v3
 
+## Workflow Diagram
 ![](fig/flow.png)
 
 ## Introdution
