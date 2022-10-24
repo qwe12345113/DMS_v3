@@ -44,7 +44,7 @@ DMS_v3
 ## Getting Started:
 ### Usage
 
-* detect from webcam.
+* Evaluation with live video from camera.
 ```bash
 $ ./dms
 ```
