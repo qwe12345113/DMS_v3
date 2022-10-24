@@ -57,8 +57,6 @@ public:
             myROI = cv::Rect(ROI_Xm, ROI_Y, ROI_COL, ROI_ROW);
         else if ((select_ROI % 3)==2)
             myROI = cv::Rect(ROI_Xr, ROI_Y, ROI_COL, ROI_ROW);
-        
-        
     }
 
     void cal_head_tresh(float pitch, float yaw, bool lag)
@@ -101,6 +99,10 @@ private:
 
         while (fin >> s)
         {
+            if (s[0] == '#') {
+			    fin.getline(&s[0], BUFSIZE, '\n');
+			    continue;
+		    }
             fin >> val;
             data[s] = val;
             fin.getline(&s[0], BUFSIZE, '\n');
