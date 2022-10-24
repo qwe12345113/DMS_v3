@@ -15,7 +15,7 @@ public:
     float ear_act_tresh, mear_act_tresh, pitch_act_tresh, yaw_act_tresh;
     float ear_tresh, mear_tresh, avg_pitch=0, avg_yaw=0;
     
-    int head_basic, fps_lim, head_moveY, LAG;
+    int head_basic, fps_lim, head_moveY, LAG, select_ROI;
     int INPUT_COL, INPUT_ROW, ROI_COL, ROI_ROW;
     int ROI_Xl, ROI_Xm, ROI_Xr, ROI_Y;
     bool record;
@@ -42,13 +42,23 @@ public:
         ROI_COL = (int)(INPUT_COL / 2); 
         ROI_ROW = INPUT_ROW;
 
-        ROI_Xl = data["ROI_Xl"];
+        ROI_Xl = 0;
         ROI_Xm = (int)(INPUT_COL / 4);
         ROI_Xr = (int)(INPUT_COL / 2);
-        ROI_Y = data["ROI_Y"];
+        ROI_Y = 0;
         
         mySize = cv::Size(INPUT_COL, INPUT_ROW);
-        myROI = cv::Rect(ROI_Xm, ROI_Y, ROI_COL, ROI_ROW);
+
+        select_ROI = data["selectROI"];
+        
+        if((select_ROI % 3) == 0)
+            myROI = cv::Rect(ROI_Xl, ROI_Y, ROI_COL, ROI_ROW);
+        else if ((select_ROI % 3)==1)
+            myROI = cv::Rect(ROI_Xm, ROI_Y, ROI_COL, ROI_ROW);
+        else if ((select_ROI % 3)==2)
+            myROI = cv::Rect(ROI_Xr, ROI_Y, ROI_COL, ROI_ROW);
+        
+        
     }
 
     void cal_head_tresh(float pitch, float yaw, bool lag)

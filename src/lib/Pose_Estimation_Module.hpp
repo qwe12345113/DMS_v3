@@ -54,7 +54,7 @@ public:
 
         if (!rvec.empty() && !tvec.empty())
         {
-            //cv::solvePnPRefineVVS(model_points, image_points, camera_matrix, dist_coeffs, rvec, tvec);
+            cv::solvePnPRefineVVS(model_points, image_points, camera_matrix, dist_coeffs, rvec, tvec);
 
             std::vector<cv::Point2f> nose_end_point2D;
             cv::projectPoints(axis, rvec, tvec, camera_matrix, dist_coeffs, nose_end_point2D);
