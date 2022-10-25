@@ -1,7 +1,7 @@
 # DMS_v3
 
 ## Workflow Diagram
-![](fig/flow.png)
+![](doc/flow.png)
 
 ## Introdution
 This project edit from [DMS_v2](https://github.com/qwe12345113/DMS_v2). We combine the **registor** and **face recognition** function into dms function. 
