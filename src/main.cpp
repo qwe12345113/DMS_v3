@@ -4,8 +4,8 @@
 #include <dlib/image_processing/frontal_face_detector.h>
 #include <dlib/image_processing/render_face_detections.h>
 #include <dlib/image_processing.h>
-// #include <dlib/opencv/cv_image.h>
-// #include <dlib/opencv.h>
+#include <dlib/image_transforms.h>
+#include <dlib/serialize.h>
 #include <dlib/image_io.h>
 #include <thread>
 #include <unistd.h>
@@ -94,7 +94,8 @@ void runFunc()
   anet_type net;
   deserialize("../Model/dlib_face_recognition_resnet_model_v1.dat") >> net;
 
-  cv::VideoCapture cam(0);
+  cv::VideoCapture cam;
+  cam.open(0);
   cam.set(cv::CAP_PROP_FPS, 30);
   cam.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
   cam.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
@@ -157,8 +158,7 @@ void runFunc()
       }
 
       if(strcmp(reg_command.substr(0, 3).c_str(), "reg") == 0)
-      {
-        auto start_reg = std::chrono::high_resolution_clock::now();
+      {        
         if (check)
         {          
           user_name = reg_command.substr(reg_command.find(" ") + 1);
@@ -194,14 +194,11 @@ void runFunc()
           }
         }
         cout << endl;
-        auto finish_reg = std::chrono::high_resolution_clock::now();
-        cout << "during " << (std::chrono::duration_cast<std::chrono::milliseconds>(finish_reg-start_reg).count()) << " ms" << endl;
-        cout << "during " << (std::chrono::duration_cast<std::chrono::seconds>(finish_reg-start_reg).count()) << " s" << endl;
       }
 
       else if (strcmp(reg_command.c_str(), "rec") == 0)
       {
-        auto start_rec = std::chrono::high_resolution_clock::now();
+        
         usr_reg.recognized = false;
         usr_reg.TakePhoto(face, frame);
         usr_reg.recognize_usr();
@@ -213,9 +210,6 @@ void runFunc()
         
         reg_command = "";
         cout << endl;
-        auto finish_rec = std::chrono::high_resolution_clock::now();
-        cout << "during " << (std::chrono::duration_cast<std::chrono::milliseconds>(finish_rec-start_rec).count()) << " ms" << endl;
-        cout << "during " << (std::chrono::duration_cast<std::chrono::seconds>(finish_rec-start_rec).count()) << " s" << endl;
       }
 
       else

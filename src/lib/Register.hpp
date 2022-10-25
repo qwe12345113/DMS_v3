@@ -1,11 +1,5 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <ftw.h>
-// #include <filesystem>
-// #include <sys/types.h>
-// #include <dirent.h>
 #include "facerec.h"
 
 using namespace cv;
