@@ -4,7 +4,7 @@
 ![](doc/flow.png)
 
 ## Introdution
-This project edit from [DMS_v2](https://github.com/qwe12345113/DMS_v2). We combine the **registor** and **face recognition** function into dms function. 
+This project base on dlib facial landmark detection and edit from [DMS_v2](https://github.com/qwe12345113/DMS_v2). We combine the **registor** and **face recognition** function into dms function. 
 
 Type the command "reg user_name" and "rec" to do the **registor** and **face recognition** function. 
 
