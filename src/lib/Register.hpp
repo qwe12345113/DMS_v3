@@ -218,10 +218,10 @@ private:
     {
         int left, top, w, h = 0;
 
-        if (dets.left() - 20 < 0)
+        if (dets.left() - 30 < 0)
             left = 0;
         else
-            left = dets.left() - 20;
+            left = dets.left() - 30;
 
         if (dets.top() - 50 < 0)
             top = 0;
@@ -237,6 +237,7 @@ private:
             h = img_row - top;
         else
             h = dets.height() + 60;
+        
         cv::Rect roi(left, top, w, h);
         // cv::Rect roi(dets.left()-20, dets.top()-50, dets.width()+20, dets.height()+60);
         return roi;

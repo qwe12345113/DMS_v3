@@ -95,7 +95,8 @@ void runFunc()
   deserialize("../Model/dlib_face_recognition_resnet_model_v1.dat") >> net;
 
   cv::VideoCapture cam;
-  cam.open(0);
+  // cam.open("../MOV_0001.mp4");
+  cam.open(cfg.device);
   cam.set(cv::CAP_PROP_FPS, 30);
   cam.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
   cam.set(cv::CAP_PROP_FRAME_HEIGHT, 720);

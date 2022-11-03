@@ -18,6 +18,7 @@ public:
     int head_basic, fps_lim, head_moveY, LAG, select_ROI;
     int INPUT_COL, INPUT_ROW, ROI_COL, ROI_ROW;
     int ROI_Xl, ROI_Xm, ROI_Xr, ROI_Y;
+    int device;
     bool record;
     cv::Rect myROI;
     cv::Size mySize;
@@ -57,6 +58,8 @@ public:
             myROI = cv::Rect(ROI_Xm, ROI_Y, ROI_COL, ROI_ROW);
         else if ((select_ROI % 3)==2)
             myROI = cv::Rect(ROI_Xr, ROI_Y, ROI_COL, ROI_ROW);
+
+        device = data["device"];
     }
 
     void cal_head_tresh(float pitch, float yaw, bool lag)
